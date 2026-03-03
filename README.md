@@ -34,3 +34,12 @@ Output:
 
 - `target/docs-site/index.html` (top page)
 - `target/docs-site/api/` (`cargo doc --workspace --no-deps` output)
+
+## License
+
+Licensed under either of:
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE))
+- MIT license ([LICENSE-MIT](./LICENSE-MIT))
+
+at your option.
