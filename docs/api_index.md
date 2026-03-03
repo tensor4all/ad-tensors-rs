@@ -12,5 +12,6 @@
 
 ## Status
 
-Numeric kernels are not implemented in this POC. Operation functions return
-`Error::NotImplemented`.
+Operation wrappers are implemented and delegate to `tenferro-einsum` and
+`tenferro-linalg`. AD-mode-aware einsum (`einsum_ad`) is implemented with
+mode/tangent propagation and reverse-tape consistency checks.

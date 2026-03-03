@@ -11,7 +11,9 @@ use thiserror::Error;
 ///     if flag {
 ///         Ok(())
 ///     } else {
-///         Err(Error::NotImplemented { op: "demo" })
+///         Err(Error::InvalidAdTensor {
+///             message: "demo".into(),
+///         })
 ///     }
 /// }
 ///
@@ -28,9 +30,17 @@ pub enum Error {
     #[error("global context type mismatch: expected `{expected}`")]
     ContextTypeMismatch { expected: &'static str },
 
-    /// Placeholder for unimplemented POC kernel behavior.
-    #[error("`{op}` is not implemented in this POC")]
-    NotImplemented { op: &'static str },
+    /// Wrapper for backend/linalg/einsum errors from tenferro crates.
+    #[error(transparent)]
+    Backend(#[from] tenferro_device::Error),
+
+    /// AD tensor operands are structurally invalid for the requested operation.
+    #[error("invalid AD tensor operands: {message}")]
+    InvalidAdTensor { message: String },
+
+    /// Reverse-mode operands belong to different tapes.
+    #[error("reverse-mode operands must share one tape: expected {expected}, found {found}")]
+    MixedReverseTape { expected: u64, found: u64 },
 }
 
 /// Convenience result alias.
@@ -41,7 +51,9 @@ pub enum Error {
 /// use ad_tensors_rs::{Error, Result};
 ///
 /// let ok: Result<i32> = Ok(1);
-/// let err: Result<i32> = Err(Error::NotImplemented { op: "sample" });
+/// let err: Result<i32> = Err(Error::InvalidAdTensor {
+///     message: "sample".into(),
+/// });
 ///
 /// assert_eq!(ok.unwrap(), 1);
 /// assert!(err.is_err());

@@ -13,16 +13,14 @@
    - fixed runtime dtype set (`f32`, `f64`, `Complex32`, `Complex64`)
 
 3. **Operational boundaries (`api`, `traits`)**
-   - POC operation signatures (`einsum`, `einsum_ad`, `svd`, and auto-context wrappers)
+   - implemented operation wrappers (`einsum`, `einsum_ad`, `svd`, and auto-context variants)
    - abstraction traits (`TensorKernel`, `OpRule`, `Differentiable`)
 
 4. **Execution context (`context`)**
    - thread-local context registration and lookup for `*_auto` APIs
 
-## Non-goals in this phase
+## Scope limits
 
-- No numerical kernels.
-- No backend-specific scheduling.
-- No mixed-dtype arithmetic rules.
-
-All operation entry points currently return `Error::NotImplemented`.
+- No backend implementation in this crate itself; execution delegates to `tenferro` crates.
+- No global reverse-mode tape engine in this crate; `Reverse` mode metadata is propagated structurally.
+- No mixed-dtype arithmetic rules across `Dyn*` wrappers.

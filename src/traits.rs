@@ -13,7 +13,9 @@ use crate::{AdScalar, AdTensor, AdValue, DiffPolicy, DynScalar, Result};
 /// use ad_tensors_rs::{AdResult, Error};
 ///
 /// let ok: AdResult<()> = Ok(());
-/// let err: AdResult<()> = Err(Error::NotImplemented { op: "demo" });
+/// let err: AdResult<()> = Err(Error::InvalidAdTensor {
+///     message: "demo".into(),
+/// });
 /// assert!(ok.is_ok());
 /// assert!(err.is_err());
 /// ```

@@ -1,6 +1,6 @@
 # ad-tensors-rs
 
-AD-aware tensor interface skeleton on top of `tenferro-rs`.
+AD-aware tensor interface layer on top of `tenferro-rs`.
 
 ## Status
 
@@ -22,8 +22,14 @@ This repository currently provides:
   - `svd`, `svd_auto`
 - Thread-local global context utilities
 
-Numeric kernels and AD rules are not implemented yet. API functions return
-`Error::NotImplemented` in this POC phase.
+Implemented operation entry points:
+
+- `einsum` / `einsum_auto`: primal einsum via `tenferro-einsum`
+- `einsum_ad` / `einsum_ad_auto`: AD-mode-aware einsum (Primal/Forward/Reverse)
+- `svd` / `svd_auto`: SVD via `tenferro-linalg`
+
+`einsum_ad` propagates mode and tangent information. For reverse-mode inputs,
+it enforces single-tape consistency and constructs output reverse metadata.
 
 ## Development
 

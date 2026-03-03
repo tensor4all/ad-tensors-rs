@@ -8,9 +8,12 @@ publish = false
 [dependencies]
 num-complex = "0.4"
 thiserror = "2"
+chainrules-core = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "chainrules-core" }
 
 # CI-safe dependency wiring to tenferro-rs.
 tenferro-algebra = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-algebra" }
+tenferro-device = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-device" }
+tenferro-einsum = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-einsum" }
 tenferro-prims = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-prims" }
 tenferro-tensor = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-tensor" }
 tenferro-linalg = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "tenferro-linalg" }
