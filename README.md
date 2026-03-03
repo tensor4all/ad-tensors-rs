@@ -21,3 +21,16 @@ cargo fmt --all
 cargo clippy --all-targets
 cargo test --release
 ```
+
+## Documentation
+
+Build local docs site:
+
+```bash
+./scripts/build_docs_site.sh
+```
+
+Output:
+
+- `target/docs-site/index.html` (top page)
+- `target/docs-site/api/` (`cargo doc --workspace --no-deps` output)
