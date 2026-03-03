@@ -22,7 +22,7 @@ pub use context::{
 pub use error::{Error, Result};
 pub use mode::{Dual, NodeId, Primal, TapeId, Tracked};
 pub use policy::DiffPolicy;
-pub use scalar::{AnyScalar, BaseScalar};
+pub use scalar::{AnyScalar, BaseScalar, BaseScalarLike};
 pub use traits::{
     AdResult, AllowedPairs, Differentiable, FactorizeOptions, FactorizeResult, IndexLike, OpRule,
     TensorKernel,

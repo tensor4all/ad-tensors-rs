@@ -2,6 +2,30 @@ use num_complex::Complex64;
 
 use crate::mode::{Dual, NodeId, Tracked};
 
+/// Compile-time scalar boundary for values representable as [`BaseScalar`].
+///
+/// This keeps generic APIs ergonomic while preserving the runtime-mode
+/// representation (`BaseScalar` / `AnyScalar`) used by the AD layer.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{AnyScalar, BaseScalarLike};
+/// use num_complex::Complex64;
+///
+/// fn lift<T: BaseScalarLike>(x: T) -> AnyScalar {
+///     AnyScalar::from(x)
+/// }
+///
+/// let a = lift(1.0_f64);
+/// let b = lift(Complex64::new(2.0, 0.5));
+/// assert!(matches!(a, AnyScalar::Primal(_)));
+/// assert!(matches!(b, AnyScalar::Primal(_)));
+/// ```
+pub trait BaseScalarLike: Clone {
+    fn into_base_scalar(self) -> BaseScalar;
+}
+
 /// Base scalar domain used by the AD wrappers.
 ///
 /// # Examples
@@ -21,15 +45,33 @@ pub enum BaseScalar {
     C64(Complex64),
 }
 
+impl BaseScalarLike for BaseScalar {
+    fn into_base_scalar(self) -> BaseScalar {
+        self
+    }
+}
+
 impl From<f64> for BaseScalar {
     fn from(value: f64) -> Self {
         Self::F64(value)
     }
 }
 
+impl BaseScalarLike for f64 {
+    fn into_base_scalar(self) -> BaseScalar {
+        BaseScalar::F64(self)
+    }
+}
+
 impl From<Complex64> for BaseScalar {
     fn from(value: Complex64) -> Self {
         Self::C64(value)
+    }
+}
+
+impl BaseScalarLike for Complex64 {
+    fn into_base_scalar(self) -> BaseScalar {
+        BaseScalar::C64(self)
     }
 }
 
@@ -71,34 +113,34 @@ pub enum AnyScalar {
 
 impl<T> From<T> for AnyScalar
 where
-    T: Into<BaseScalar>,
+    T: BaseScalarLike,
 {
     fn from(value: T) -> Self {
-        Self::Primal(value.into())
+        Self::Primal(value.into_base_scalar())
     }
 }
 
 impl<T> From<Dual<T>> for AnyScalar
 where
-    T: Into<BaseScalar>,
+    T: BaseScalarLike,
 {
     fn from(value: Dual<T>) -> Self {
         Self::Dual {
-            primal: value.primal.into(),
-            tangent: value.tangent.into(),
+            primal: value.primal.into_base_scalar(),
+            tangent: value.tangent.into_base_scalar(),
         }
     }
 }
 
 impl<T> From<Tracked<T>> for AnyScalar
 where
-    T: Into<BaseScalar>,
+    T: BaseScalarLike,
 {
     fn from(value: Tracked<T>) -> Self {
         Self::Tracked {
-            primal: value.primal.into(),
+            primal: value.primal.into_base_scalar(),
             node: value.node,
-            tangent: value.tangent.map(Into::into),
+            tangent: value.tangent.map(BaseScalarLike::into_base_scalar),
         }
     }
 }
@@ -137,5 +179,17 @@ mod tests {
         }
         .into();
         assert!(matches!(tracked, AnyScalar::Tracked { .. }));
+    }
+
+    #[test]
+    fn generic_scalar_like() {
+        fn lift<T: BaseScalarLike>(value: T) -> AnyScalar {
+            value.into()
+        }
+
+        let a = lift(1.0_f64);
+        let b = lift(Complex64::new(1.0, -0.25));
+        assert!(matches!(a, AnyScalar::Primal(BaseScalar::F64(_))));
+        assert!(matches!(b, AnyScalar::Primal(BaseScalar::C64(_))));
     }
 }
