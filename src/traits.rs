@@ -1,42 +1,118 @@
 use std::hash::Hash;
 
-use crate::{BaseScalar, DiffPolicy, Dual, Primal, Result, Tracked};
+use tenferro_algebra::Scalar;
+use tenferro_tensor::Tensor;
+
+use crate::{AdScalar, AdTensor, AdValue, DiffPolicy, DynScalar, Result};
 
 /// AD rule method result type alias.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{AdResult, Error};
+///
+/// let ok: AdResult<()> = Ok(());
+/// let err: AdResult<()> = Err(Error::NotImplemented { op: "demo" });
+/// assert!(ok.is_ok());
+/// assert!(err.is_err());
+/// ```
 pub type AdResult<T> = Result<T>;
 
-/// Trait bound for index-like labels used in contraction/factorization APIs.
+/// Trait bound for index labels used in contraction/factorization APIs.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::IndexLike;
+///
+/// fn accepts_index<I: IndexLike>(_index: I) {}
+/// accepts_index(3_u32);
+/// ```
 pub trait IndexLike: Clone + Eq + Hash {}
 
 impl<T> IndexLike for T where T: Clone + Eq + Hash {}
 
-/// A differentiable value with an associated tangent type.
+/// A value that can be observed as an [`AdValue`].
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{AdMode, AdValue, Differentiable};
+///
+/// fn mode_of<V: Differentiable>(value: &V) -> AdMode {
+///     value.ad_value().mode()
+/// }
+///
+/// let x = AdValue::primal(2.0_f64);
+/// assert_eq!(mode_of(&x), AdMode::Primal);
+/// ```
 pub trait Differentiable: Clone {
-    type Tangent: Clone;
+    /// Underlying primal payload type.
+    type Primal: Clone;
+
+    /// Borrow as an [`AdValue`].
+    fn ad_value(&self) -> &AdValue<Self::Primal>;
 }
 
-impl<T: Clone> Differentiable for Primal<T> {
-    type Tangent = T;
+impl<T: Clone> Differentiable for AdValue<T> {
+    type Primal = T;
+
+    fn ad_value(&self) -> &AdValue<T> {
+        self
+    }
 }
 
-impl<T: Clone> Differentiable for Dual<T> {
-    type Tangent = T;
+impl<T: Clone> Differentiable for AdScalar<T> {
+    type Primal = T;
+
+    fn ad_value(&self) -> &AdValue<T> {
+        self.as_value()
+    }
 }
 
-impl<T: Clone> Differentiable for Tracked<T> {
-    type Tangent = T;
+impl<T: Clone + Scalar> Differentiable for AdTensor<T> {
+    type Primal = Tensor<T>;
+
+    fn ad_value(&self) -> &AdValue<Tensor<T>> {
+        self.as_value()
+    }
 }
 
 /// Allowed index-pair restrictions for contraction planning.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::AllowedPairs;
+///
+/// let pairs = AllowedPairs { pairs: &[(0, 1), (2, 3)] };
+/// assert_eq!(pairs.pairs.len(), 2);
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct AllowedPairs<'a> {
+    /// Allowed input-index pairs.
     pub pairs: &'a [(usize, usize)],
 }
 
 /// Factorization options for generic tensor-kernel APIs.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{DiffPolicy, FactorizeOptions};
+///
+/// let opts = FactorizeOptions {
+///     max_rank: Some(32),
+///     diff_policy: DiffPolicy::StopGradient,
+/// };
+/// assert_eq!(opts.max_rank, Some(32));
+/// ```
 #[derive(Debug, Clone)]
 pub struct FactorizeOptions {
+    /// Optional truncation rank.
     pub max_rank: Option<usize>,
+    /// Differentiation behavior at non-smooth points.
     pub diff_policy: DiffPolicy,
 }
 
@@ -50,37 +126,151 @@ impl Default for FactorizeOptions {
 }
 
 /// Generic factorization output container.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::FactorizeResult;
+///
+/// let result = FactorizeResult { left: 1_i32, right: 2_i32 };
+/// assert_eq!(result.left + result.right, 3);
+/// ```
 #[derive(Debug, Clone)]
 pub struct FactorizeResult<T> {
+    /// Left factor.
     pub left: T,
+    /// Right factor.
     pub right: T,
 }
 
-/// Numeric tensor-kernel boundary (primal kernels only).
+/// Numeric tensor-kernel boundary for contraction/factorization operations.
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{AllowedPairs, DynScalar, FactorizeOptions, FactorizeResult, Result, TensorKernel};
+///
+/// #[derive(Clone)]
+/// struct DummyKernel;
+///
+/// impl TensorKernel for DummyKernel {
+///     type Index = u8;
+///
+///     fn contract(_tensors: &[&Self], _allowed: AllowedPairs<'_>) -> Result<Self> {
+///         Ok(Self)
+///     }
+///
+///     fn factorize(
+///         &self,
+///         _left_inds: &[Self::Index],
+///         _options: &FactorizeOptions,
+///     ) -> Result<FactorizeResult<Self>> {
+///         Ok(FactorizeResult { left: Self, right: Self })
+///     }
+///
+///     fn axpby(&self, _a: DynScalar, _other: &Self, _b: DynScalar) -> Result<Self> {
+///         Ok(Self)
+///     }
+///
+///     fn scale(&self, _a: DynScalar) -> Result<Self> {
+///         Ok(Self)
+///     }
+///
+///     fn inner_product(&self, _other: &Self) -> Result<DynScalar> {
+///         Ok(DynScalar::F64(0.0))
+///     }
+/// }
+///
+/// let x = DummyKernel;
+/// let _ = x.scale(DynScalar::F64(2.0)).unwrap();
+/// ```
 pub trait TensorKernel: Clone {
+    /// Index label type used by this kernel.
     type Index: IndexLike;
 
+    /// Contract a set of tensors under index-pair constraints.
     fn contract(tensors: &[&Self], allowed: AllowedPairs<'_>) -> Result<Self>;
+
+    /// Factorize a tensor into two factors.
     fn factorize(
         &self,
         left_inds: &[Self::Index],
         options: &FactorizeOptions,
     ) -> Result<FactorizeResult<Self>>;
-    fn axpby(&self, a: BaseScalar, other: &Self, b: BaseScalar) -> Result<Self>;
-    fn scale(&self, a: BaseScalar) -> Result<Self>;
-    fn inner_product(&self, other: &Self) -> Result<BaseScalar>;
+
+    /// Affine combination `a * self + b * other`.
+    fn axpby(&self, a: DynScalar, other: &Self, b: DynScalar) -> Result<Self>;
+
+    /// Scalar multiply.
+    fn scale(&self, a: DynScalar) -> Result<Self>;
+
+    /// Inner product result.
+    fn inner_product(&self, other: &Self) -> Result<DynScalar>;
 }
 
-/// Operation-level AD rules (rrule/frule/hvp).
+/// Operation-level AD rules (`rrule`, `frule`, `hvp`).
+///
+/// # Examples
+///
+/// ```rust
+/// use ad_tensors_rs::{AdResult, AdValue, Differentiable, OpRule, Result};
+///
+/// struct IdentityRule;
+///
+/// impl OpRule<AdValue<f64>> for IdentityRule {
+///     fn eval(&self, inputs: &[&AdValue<f64>]) -> Result<AdValue<f64>> {
+///         Ok((*inputs[0]).clone())
+///     }
+///
+///     fn rrule(
+///         &self,
+///         _inputs: &[&AdValue<f64>],
+///         _out: &AdValue<f64>,
+///         cotangent: &f64,
+///     ) -> AdResult<Vec<f64>> {
+///         Ok(vec![*cotangent])
+///     }
+///
+///     fn frule(
+///         &self,
+///         _inputs: &[&AdValue<f64>],
+///         tangents: &[Option<&f64>],
+///     ) -> AdResult<f64> {
+///         Ok(tangents[0].copied().unwrap_or(0.0))
+///     }
+///
+///     fn hvp(
+///         &self,
+///         _inputs: &[&AdValue<f64>],
+///         cotangent: &f64,
+///         cotangent_tangent: Option<&f64>,
+///         _input_tangents: &[Option<&f64>],
+///     ) -> AdResult<Vec<(f64, f64)>> {
+///         Ok(vec![(*cotangent, cotangent_tangent.copied().unwrap_or(0.0))])
+///     }
+/// }
+///
+/// let x = AdValue::primal(2.0_f64);
+/// let rule = IdentityRule;
+/// let y = rule.eval(&[&x]).unwrap();
+/// assert_eq!(y.primal_ref(), &2.0);
+/// ```
 pub trait OpRule<V: Differentiable> {
+    /// Compute primal output.
     fn eval(&self, inputs: &[&V]) -> Result<V>;
-    fn rrule(&self, inputs: &[&V], out: &V, cotangent: &V::Tangent) -> AdResult<Vec<V::Tangent>>;
-    fn frule(&self, inputs: &[&V], tangents: &[Option<&V::Tangent>]) -> AdResult<V::Tangent>;
+
+    /// Reverse-mode pullback.
+    fn rrule(&self, inputs: &[&V], out: &V, cotangent: &V::Primal) -> AdResult<Vec<V::Primal>>;
+
+    /// Forward-mode pushforward.
+    fn frule(&self, inputs: &[&V], tangents: &[Option<&V::Primal>]) -> AdResult<V::Primal>;
+
+    /// Hessian-vector product.
     fn hvp(
         &self,
         inputs: &[&V],
-        cotangent: &V::Tangent,
-        cotangent_tangent: Option<&V::Tangent>,
-        input_tangents: &[Option<&V::Tangent>],
-    ) -> AdResult<Vec<(V::Tangent, V::Tangent)>>;
+        cotangent: &V::Primal,
+        cotangent_tangent: Option<&V::Primal>,
+        input_tangents: &[Option<&V::Primal>],
+    ) -> AdResult<Vec<(V::Primal, V::Primal)>>;
 }
