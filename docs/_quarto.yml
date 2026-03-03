@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: ../target/docs-site/design
+  render:
+    - index.md
+    - design/**/*.md
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    code-overflow: wrap
+    html-math-method: katex
+
+website:
+  title: "ad-tensors-rs Design Docs"
+  sidebar:
+    style: docked
+    contents:
+      - index.md
+      - section: "Design"
+        contents:
+          - design/index.md
+          - design/architecture.md
+          - design/type-system.md
+          - design/api.md

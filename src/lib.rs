@@ -1,28 +1,27 @@
-//! ad-tensors-rs: three-mode AD tensor-layer API skeleton.
+//! `ad-tensors-rs`: AD-aware tensor interface skeleton on top of `tenferro-rs`.
 //!
-//! This crate defines interface-level types and function signatures for:
-//! - `Primal` evaluation
-//! - `Dual` forward-mode differentiation
-//! - `Tracked` reverse-mode differentiation
+//! This crate exposes two layers:
+//! - Generic, user-extensible AD values via [`AdValue`]
+//! - Runtime dtype wrappers via `Dyn*` enums for FFI and dynamic dispatch
 //!
 //! Numeric kernels are intentionally not implemented yet in this POC.
 
+pub mod ad_value;
 pub mod api;
 pub mod context;
+pub mod dyn_types;
 pub mod error;
-pub mod mode;
 pub mod policy;
-pub mod scalar;
 pub mod traits;
 
-pub use api::{einsum, einsum_auto, svd, svd_auto};
+pub use ad_value::{AdMode, AdScalar, AdTensor, AdValue, NodeId, TapeId};
+pub use api::{einsum, einsum_ad, einsum_ad_auto, einsum_auto, svd, svd_auto};
 pub use context::{
     set_global_context, try_with_global_context, with_global_context, GlobalContextGuard,
 };
+pub use dyn_types::{DynAdTensor, DynAdValue, DynScalar, DynTensor, ScalarType};
 pub use error::{Error, Result};
-pub use mode::{Dual, NodeId, Primal, TapeId, Tracked};
 pub use policy::DiffPolicy;
-pub use scalar::{AnyScalar, BaseScalar, BaseScalarLike};
 pub use traits::{
     AdResult, AllowedPairs, Differentiable, FactorizeOptions, FactorizeResult, IndexLike, OpRule,
     TensorKernel,
