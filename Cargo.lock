@@ -99,6 +99,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "chainrules-core"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "thiserror 2.0.18",
 ]
@@ -1154,6 +1155,7 @@ dependencies = [
 [[package]]
 name = "tenferro-algebra"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "num-complex",
  "num-traits",
@@ -1163,6 +1165,7 @@ dependencies = [
 [[package]]
 name = "tenferro-device"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "thiserror 2.0.18",
 ]
@@ -1170,6 +1173,7 @@ dependencies = [
 [[package]]
 name = "tenferro-linalg"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "chainrules-core",
  "faer",
@@ -1184,6 +1188,7 @@ dependencies = [
 [[package]]
 name = "tenferro-prims"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "faer",
  "libloading",
@@ -1202,6 +1207,7 @@ dependencies = [
 [[package]]
 name = "tenferro-tensor"
 version = "0.1.0"
+source = "git+https://github.com/tensor4all/tenferro-rs?rev=1817aa1ecb1d2d2a016b7cbd4318a8eefec27844#1817aa1ecb1d2d2a016b7cbd4318a8eefec27844"
 dependencies = [
  "chainrules-core",
  "num-traits",
