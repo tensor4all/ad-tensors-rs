@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 num-complex = "0.4"
+num-traits = "0.2"
 thiserror = "2"
 chainrules-core = { git = "https://github.com/tensor4all/tenferro-rs", rev = "1817aa1ecb1d2d2a016b7cbd4318a8eefec27844", package = "chainrules-core" }
 
