@@ -9,9 +9,8 @@ This site provides design documents for `ad-tensors-rs`.
 
 ## Scope
 
-`ad-tensors-rs` defines an interface-level AD tensor layer with two public planes:
+`ad-tensors-rs` provides:
 
-1. `AdValue<T>`-based generic abstractions for user-extensible scalar/tensor payloads.
+1. `AdValue<T>`-based generic AD abstractions and tensor wrappers.
 2. `Dyn*` wrappers (`DynScalar`, `DynTensor`, `DynAdValue`, `DynAdTensor`) for runtime dtype dispatch.
-
-Numeric kernels are intentionally left unimplemented in this POC.
+3. Builder-based operation API (`einsum`, `*_ad`, and full linalg surface) executed via `run()`.

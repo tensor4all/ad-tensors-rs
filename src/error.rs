@@ -22,6 +22,10 @@ use thiserror::Error;
 /// ```
 #[derive(Debug, Error)]
 pub enum Error {
+    /// The runtime used by builder `.run()` was not configured.
+    #[error("default runtime is not configured; call `set_default_runtime(...)` first")]
+    RuntimeNotConfigured,
+
     /// A required thread-local global context is missing.
     #[error("missing global context for type `{type_name}`")]
     MissingGlobalContext { type_name: &'static str },
@@ -34,6 +38,10 @@ pub enum Error {
     #[error(transparent)]
     Backend(#[from] tenferro_device::Error),
 
+    /// Wrapper for AD-rule level errors from `chainrules-core`.
+    #[error(transparent)]
+    Autodiff(#[from] chainrules_core::AutodiffError),
+
     /// AD tensor operands are structurally invalid for the requested operation.
     #[error("invalid AD tensor operands: {message}")]
     InvalidAdTensor { message: String },
@@ -41,6 +49,17 @@ pub enum Error {
     /// Reverse-mode operands belong to different tapes.
     #[error("reverse-mode operands must share one tape: expected {expected}, found {found}")]
     MixedReverseTape { expected: u64, found: u64 },
+
+    /// Operation is not available for the currently selected runtime.
+    #[error("operation `{op}` is not supported on runtime `{runtime}`")]
+    UnsupportedRuntimeOp {
+        op: &'static str,
+        runtime: &'static str,
+    },
+
+    /// AD operation is not available for the requested mode.
+    #[error("AD operation `{op}` is not supported for the provided inputs")]
+    UnsupportedAdOp { op: &'static str },
 }
 
 /// Convenience result alias.

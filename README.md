@@ -16,20 +16,28 @@ This repository currently provides:
   - `ScalarType` (`F32`, `F64`, `C32`, `C64`)
 - AD boundary traits:
   - `Differentiable`, `TensorKernel`, `OpRule`
-- API signatures:
-  - `einsum`, `einsum_auto`
-  - `einsum_ad`, `einsum_ad_auto`
-  - `svd`, `svd_auto`
-- Thread-local global context utilities
+- Runtime context:
+  - `RuntimeContext`
+  - `set_default_runtime`
+  - `with_default_runtime`
+- Builder-style operation API (`run()` terminal):
+  - Einsum: `einsum(...)`, `einsum_ad(...)`
+  - Linalg primal: `svd/qr/lu/eigen/lstsq/cholesky/solve/inv/det/slogdet/eig/pinv/matrix_exp/solve_triangular/norm`
+  - Linalg AD: corresponding `*_ad(...)` operations
 
-Implemented operation entry points:
+All operation entry points are builder-based and execute via `.run()` using
+the default runtime context.
 
-- `einsum` / `einsum_auto`: primal einsum via `tenferro-einsum`
-- `einsum_ad` / `einsum_ad_auto`: AD-mode-aware einsum (Primal/Forward/Reverse)
-- `svd` / `svd_auto`: SVD via `tenferro-linalg`
+```rust
+use ad_tensors_rs::{qr, set_default_runtime, RuntimeContext};
+use tenferro_prims::CpuContext;
+use tenferro_tensor::{MemoryOrder, Tensor};
 
-`einsum_ad` propagates mode and tangent information. For reverse-mode inputs,
-it enforces single-tape consistency and constructs output reverse metadata.
+let _guard = set_default_runtime(RuntimeContext::Cpu(CpuContext::new(1)));
+let a = Tensor::<f64>::from_slice(&[1.0, 0.0, 0.0, 1.0], &[2, 2], MemoryOrder::ColumnMajor)?;
+let qr_result = qr(&a).run()?;
+# Ok::<(), ad_tensors_rs::Error>(())
+```
 
 ## Development
 
