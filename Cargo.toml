@@ -1,0 +1,16 @@
+[package]
+name = "ad-tensors-rs"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+num-complex = "0.4"
+thiserror = "2"
+
+# Local development wiring to tenferro-rs.
+tenferro-algebra = { path = "../tenferro-rs/tenferro-algebra" }
+tenferro-prims = { path = "../tenferro-rs/tenferro-prims" }
+tenferro-tensor = { path = "../tenferro-rs/tenferro-tensor" }
+tenferro-linalg = { path = "../tenferro-rs/tenferro-linalg" }
