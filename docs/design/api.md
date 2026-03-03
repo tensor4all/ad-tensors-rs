@@ -2,13 +2,23 @@
 
 ## Operation entry points
 
-Current POC signatures include:
+Current operation entry points:
 
 - `einsum` / `einsum_auto` for primal tensors
 - `einsum_ad` / `einsum_ad_auto` for AD tensors
 - `svd` / `svd_auto` for linalg factorization surface
 
-All currently return `Error::NotImplemented`.
+Implementation status:
+
+- `einsum` / `einsum_auto`: implemented with `tenferro-einsum`
+- `einsum_ad` / `einsum_ad_auto`: implemented with AD mode propagation
+- `svd` / `svd_auto`: implemented with `tenferro-linalg`
+
+`einsum_ad` uses the following mode precedence:
+
+- if any operand is `Reverse`, output is `Reverse`
+- else if any operand is `Forward`, output is `Forward`
+- else output is `Primal`
 
 ## Context model
 
